@@ -8,7 +8,7 @@ var createError = require('..')
 
 describe('createError(status)', function () {
   it('should create error object', function () {
-    assert.ok(util.isError(createError(500))) // eslint-disable-line node/no-deprecated-api
+    assert.ok(util.types.isNativeError(createError(500))) // eslint-disable-line node/no-deprecated-api
   })
 
   describe('Extending Existing Errors with HTTP Properties', function () {
