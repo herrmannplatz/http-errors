@@ -13,7 +13,6 @@
  */
 
 var deprecate = require('depd')('http-errors')
-var setPrototypeOf = require('setprototypeof')
 var statuses = require('statuses')
 var inherits = require('inherits')
 var toIdentifier = require('toidentifier')
@@ -136,7 +135,7 @@ function createClientErrorConstructor (HttpError, name, code) {
     Error.captureStackTrace(err, ClientError)
 
     // adjust the [[Prototype]]
-    setPrototypeOf(err, ClientError.prototype)
+    Object.setPrototypeOf(err, ClientError.prototype)
 
     // redefine the error message
     Object.defineProperty(err, 'message', {
@@ -205,7 +204,7 @@ function createServerErrorConstructor (HttpError, name, code) {
     Error.captureStackTrace(err, ServerError)
 
     // adjust the [[Prototype]]
-    setPrototypeOf(err, ServerError.prototype)
+    Object.setPrototypeOf(err, ServerError.prototype)
 
     // redefine the error message
     Object.defineProperty(err, 'message', {

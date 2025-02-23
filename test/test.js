@@ -1,14 +1,14 @@
 
 process.env.NO_DEPRECATION = 'http-errors'
 
-var assert = require('assert')
-var util = require('util')
+const assert = require('node:assert')
+const util = require('node:util')
 
-var createError = require('..')
+const createError = require('..')
 
 describe('createError(status)', function () {
   it('should create error object', function () {
-    assert.ok(util.types.isNativeError(createError(500))) // eslint-disable-line node/no-deprecated-api
+    assert.ok(util.types.isNativeError(createError(500)))
   })
 
   describe('Extending Existing Errors with HTTP Properties', function () {
@@ -126,7 +126,7 @@ describe('createError(status, message)', function () {
   })
 
   it('should create error object', function () {
-    assert.ok(util.isError(this.error)) // eslint-disable-line node/no-deprecated-api
+    assert.ok(util.types.isNativeError(this.error)) // eslint-disable-line node/no-deprecated-api
   })
 
   it('should have "message" property with message', function () {
@@ -419,11 +419,9 @@ describe('HTTP Errors', function () {
     assert((new createError['500']()) instanceof createError.HttpError)
   })
 
-  it('should support util.isError()', function () {
-    /* eslint-disable node/no-deprecated-api */
-    assert(util.isError(createError(404)))
-    assert(util.isError(new createError['404']()))
-    assert(util.isError(new createError['500']()))
-    /* eslint-enable node/no-deprecated-api */
+  it('should support util.types.isNativeError()', function () {
+    assert(util.types.isNativeError(createError(404)))
+    assert(util.types.isNativeError(new createError['404']()))
+    assert(util.types.isNativeError(new createError['500']()))
   })
 })
