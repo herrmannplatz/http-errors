@@ -12,10 +12,10 @@
  * @private
  */
 
-var deprecate = require('depd')('http-errors')
-var statuses = require('statuses')
-var inherits = require('inherits')
-var toIdentifier = require('toidentifier')
+const deprecate = require('depd')('http-errors')
+const statuses = require('statuses')
+const inherits = require('inherits')
+const toIdentifier = require('toidentifier')
 
 /**
  * Module exports.
