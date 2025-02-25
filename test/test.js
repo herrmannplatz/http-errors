@@ -204,6 +204,7 @@ describe('HTTP Errors', function () {
       id: 1
     })
     assert.strictEqual(err.name, 'NotFoundError')
+    assert.strictEqual(err.constructor.name, 'NotFoundError')
     assert.strictEqual(err.message, 'Not Found')
     assert.strictEqual(err.status, 404)
     assert.strictEqual(err.statusCode, 404)
@@ -216,6 +217,7 @@ describe('HTTP Errors', function () {
       status: 500
     })
     assert.strictEqual(err.name, 'NotFoundError')
+    assert.strictEqual(err.constructor.name, 'NotFoundError')
     assert.strictEqual(err.message, 'Not Found')
     assert.strictEqual(err.status, 404)
     assert.strictEqual(err.statusCode, 404)
@@ -228,6 +230,7 @@ describe('HTTP Errors', function () {
       statusCode: 500
     })
     assert.strictEqual(err.name, 'NotFoundError')
+    assert.strictEqual(err.constructor.name, 'NotFoundError')
     assert.strictEqual(err.message, 'Not Found')
     assert.strictEqual(err.status, 404)
     assert.strictEqual(err.statusCode, 404)
@@ -239,6 +242,7 @@ describe('HTTP Errors', function () {
       id: 1
     })
     assert.strictEqual(err.name, 'InternalServerError')
+    assert.strictEqual(err.constructor.name, 'InternalServerError')
     assert.strictEqual(err.message, 'Internal Server Error')
     assert.strictEqual(err.status, 500)
     assert.strictEqual(err.statusCode, 500)

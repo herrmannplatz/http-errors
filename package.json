@@ -12,7 +12,6 @@
   "repository": "jshttp/http-errors",
   "dependencies": {
     "depd": "2.0.0",
-    "inherits": "2.0.4",
     "statuses": "2.0.1",
     "toidentifier": "1.0.1"
   },

@@ -14,8 +14,17 @@
 
 const deprecate = require('depd')('http-errors')
 const statuses = require('statuses')
-const inherits = require('inherits')
 const toIdentifier = require('toidentifier')
+
+class HttpError extends Error {
+  constructor (status, message) {
+    if (new.target === HttpError) {
+      throw new TypeError('cannot construct abstract class')
+    }
+    super(message)
+    this.status = this.statusCode = status
+  }
+}
 
 /**
  * Module exports.
@@ -23,11 +32,11 @@ const toIdentifier = require('toidentifier')
  */
 
 module.exports = createError
-module.exports.HttpError = createHttpErrorConstructor()
-module.exports.isHttpError = createIsHttpErrorFunction(module.exports.HttpError)
+module.exports.HttpError = HttpError
+module.exports.isHttpError = createIsHttpErrorFunction(HttpError)
 
 // Populate exports for all constructors
-populateConstructorExports(module.exports, statuses.codes, module.exports.HttpError)
+populateConstructorExports(module.exports, statuses.codes)
 
 /**
  * Get the code class of a status code.
@@ -45,15 +54,15 @@ function codeClass (status) {
  * @public
  */
 
-function createError () {
+function createError (...args) {
   // so much arity going on ~_~
-  var err
-  var msg
-  var status = 500
-  var props = {}
-  for (var i = 0; i < arguments.length; i++) {
-    var arg = arguments[i]
-    var type = typeof arg
+  let err
+  let msg
+  let status = 500
+  let props = {}
+  for (let i = 0; i < arguments.length; i++) {
+    const arg = arguments[i]
+    const type = typeof arg
     if (type === 'object' && arg instanceof Error) {
       err = arg
       status = err.status || err.statusCode || status
@@ -78,7 +87,7 @@ function createError () {
   }
 
   // constructor
-  var HttpError = createError[status] || createError[codeClass(status)]
+  const HttpError = createError[status] || createError[codeClass(status)]
 
   if (!err) {
     // create error
@@ -94,7 +103,7 @@ function createError () {
     err.status = err.statusCode = status
   }
 
-  for (var key in props) {
+  for (const key in props) {
     if (key !== 'status' && key !== 'statusCode') {
       err[key] = props[key]
     }
@@ -104,63 +113,23 @@ function createError () {
 }
 
 /**
- * Create HTTP error abstract base class.
- * @private
- */
-
-function createHttpErrorConstructor () {
-  class HttpError extends Error {
-    constructor () {
-      throw new TypeError('cannot construct abstract class')
-    }
-  }
-  return HttpError
-}
-
-/**
  * Create a constructor for a client error.
  * @private
  */
 
-function createClientErrorConstructor (HttpError, name, code) {
-  var className = toClassName(name)
+function createClientErrorConstructor (name, code) {
+  const className = toClassName(name)
 
-  function ClientError (message) {
-    // create the error object
-    var msg = message != null ? message : statuses.message[code]
-    var err = new Error(msg)
-
-    // capture a stack trace to the construction point
-    Error.captureStackTrace(err, ClientError)
-
-    // adjust the [[Prototype]]
-    Object.setPrototypeOf(err, ClientError.prototype)
-
-    // redefine the error message
-    Object.defineProperty(err, 'message', {
-      enumerable: true,
-      configurable: true,
-      value: msg,
-      writable: true
-    })
-
-    // redefine the error name
-    Object.defineProperty(err, 'name', {
-      enumerable: false,
-      configurable: true,
-      value: className,
-      writable: true
-    })
-
-    return err
+  class ClientError extends HttpError {
+    constructor (message) {
+      const msg = message != null ? message : statuses.message[code]
+      super(code, msg)
+      this.name = className
+      this.expose = true
+    }
   }
 
-  inherits(ClientError, HttpError)
   nameFunc(ClientError, className)
-
-  ClientError.prototype.status = code
-  ClientError.prototype.statusCode = code
-  ClientError.prototype.expose = true
 
   return ClientError
 }
@@ -191,45 +160,19 @@ function createIsHttpErrorFunction (HttpError) {
  * @private
  */
 
-function createServerErrorConstructor (HttpError, name, code) {
-  var className = toClassName(name)
+function createServerErrorConstructor (name, code) {
+  const className = toClassName(name)
 
-  function ServerError (message) {
-    // create the error object
-    var msg = message != null ? message : statuses.message[code]
-    var err = new Error(msg)
-
-    // capture a stack trace to the construction point
-    Error.captureStackTrace(err, ServerError)
-
-    // adjust the [[Prototype]]
-    Object.setPrototypeOf(err, ServerError.prototype)
-
-    // redefine the error message
-    Object.defineProperty(err, 'message', {
-      enumerable: true,
-      configurable: true,
-      value: msg,
-      writable: true
-    })
-
-    // redefine the error name
-    Object.defineProperty(err, 'name', {
-      enumerable: false,
-      configurable: true,
-      value: className,
-      writable: true
-    })
-
-    return err
+  class ServerError extends HttpError {
+    constructor (message) {
+      const msg = message != null ? message : statuses.message[code]
+      super(code, msg)
+      this.name = className
+      this.expose = false
+    }
   }
 
-  inherits(ServerError, HttpError)
   nameFunc(ServerError, className)
-
-  ServerError.prototype.status = code
-  ServerError.prototype.statusCode = code
-  ServerError.prototype.expose = false
 
   return ServerError
 }
@@ -240,9 +183,9 @@ function createServerErrorConstructor (HttpError, name, code) {
  */
 
 function nameFunc (func, name) {
-  var desc = Object.getOwnPropertyDescriptor(func, 'name')
+  const desc = Object.getOwnPropertyDescriptor(func, 'name')
 
-  if (desc && desc.configurable) {
+  if (desc?.configurable) {
     desc.value = name
     Object.defineProperty(func, 'name', desc)
   }
@@ -253,17 +196,17 @@ function nameFunc (func, name) {
  * @private
  */
 
-function populateConstructorExports (exports, codes, HttpError) {
+function populateConstructorExports (exports, codes) {
   codes.forEach(function forEachCode (code) {
-    var CodeError
-    var name = toIdentifier(statuses.message[code])
+    const name = toIdentifier(statuses.message[code])
+    let CodeError
 
     switch (codeClass(code)) {
       case 400:
-        CodeError = createClientErrorConstructor(HttpError, name, code)
+        CodeError = createClientErrorConstructor(name, code)
         break
       case 500:
-        CodeError = createServerErrorConstructor(HttpError, name, code)
+        CodeError = createServerErrorConstructor(name, code)
         break
     }
 
